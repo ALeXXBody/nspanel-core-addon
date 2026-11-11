@@ -1,0 +1,40 @@
+name: "Relocate GHCR images to this repository"
+
+# The container images were originally published with a source label pointing
+# at ALeXXBody/NSPanelCore. This add-on repo owns them now — re-push with the
+# corrected source label so the package association moves here.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  packages: write
+
+jobs:
+  relocate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image: nspanel-core-amd64
+            platform: linux/amd64
+          - image: nspanel-core-aarch64
+            platform: linux/arm64
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Re-label and re-push ${{ matrix.image }}:v1.0.2
+        env:
+          IMAGE: ghcr.io/${{ matrix.image }}:v1.0.2
+        run: |
+          docker pull --platform ${{ matrix.platform }} $IMAGE
+          echo "FROM $IMAGE" > Dockerfile.relabel
+          echo "LABEL org.opencontainers.image.source=https://github.com/ALeXXBody/nspanel-core-addon" >> Dockerfile.relabel
+          docker build --platform ${{ matrix.platform }} -f Dockerfile.relabel -t $IMAGE .
+          docker push $IMAGE
+          echo "Relocated $IMAGE to the nspanel-core-addon repository"
