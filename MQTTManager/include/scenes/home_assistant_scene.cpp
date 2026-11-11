@@ -1,0 +1,123 @@
+#include "database_manager/database_manager.hpp"
+#include "entity/entity.hpp"
+#include "entity_manager/entity_manager.hpp"
+#include "room/room.hpp"
+#include <curl/curl.h>
+#include <entity/entity_icons.hpp>
+#include <home_assistant_manager/home_assistant_manager.hpp>
+#include <nlohmann/detail/value_t.hpp>
+#include <nlohmann/json_fwd.hpp>
+#include <scenes/home_assistant_scene.hpp>
+#include <spdlog/spdlog.h>
+#include <string_view>
+#include <system_error>
+
+HomeAssistantScene::HomeAssistantScene(uint32_t id) {
+  this->_id = id;
+  this->reload_config();
+}
+
+void HomeAssistantScene::reload_config() {
+  try {
+    auto scene_config = database_manager::database.get<database_manager::Scene>(this->_id);
+    this->_name = scene_config.friendly_name;
+    this->_entity_id = scene_config.backend_name;
+    this->_page_id = scene_config.entities_page_id;
+    this->_page_slot = scene_config.room_view_position;
+    if (scene_config.room_id == nullptr) {
+      this->_is_global = true;
+    } else {
+      this->_is_global = false;
+      this->_room_id = *scene_config.room_id;
+    }
+    SPDLOG_DEBUG("Loaded Home Assistant scene {}::{}.", this->_id, this->_name);
+  } catch (std::system_error &ex) {
+    SPDLOG_ERROR("Failed to reload config for scene {}::{}.", this->_id, this->_name);
+  }
+}
+
+void HomeAssistantScene::activate(std::expected<int32_t, EntityManager::EntityError> triggering_room_id) {
+  SPDLOG_INFO("Activating scene {}::{}.", this->_id, this->_name);
+
+  if (this->_entity_id.starts_with("scene.")) {
+    nlohmann::json service_data;
+    service_data["type"] = "call_service";
+    service_data["domain"] = "scene";
+    service_data["service"] = "turn_on";
+    service_data["target"]["entity_id"] = this->_entity_id;
+    HomeAssistantManager::send_json(service_data);
+  } else if (this->_entity_id.starts_with("script.")) {
+    nlohmann::json service_data;
+    nlohmann::json context;
+    context["scene_name"] = this->_name;
+    context["scene_id"] = this->_id;
+
+    if (triggering_room_id.has_value()) {
+      auto triggering_room = EntityManager::get_room(*triggering_room_id);
+      if (triggering_room.has_value()) {
+        context["triggering_room_id"] = *triggering_room_id;
+        context["triggering_room_name"] = (*triggering_room)->get_name();
+      }
+    }
+
+    if (!this->_is_global) {
+      auto scene_room = EntityManager::get_room(this->_room_id);
+      if (scene_room.has_value()) {
+        context["scene_room_id"] = this->_room_id;
+        context["scene_room_name"] = (*scene_room)->get_name();
+      }
+    }
+
+    service_data["service_data"]["variables"]["nspanelmanager"] = context;
+    SPDLOG_DEBUG("Sending script with context: {}", context.dump());
+    service_data["type"] = "call_service";
+    service_data["domain"] = "script";
+    service_data["service"] = "turn_on";
+    service_data["target"]["entity_id"] = this->_entity_id;
+    HomeAssistantManager::send_json(service_data);
+  } else {
+    SPDLOG_ERROR("Got request to turn on home assistant scene {}::{} but the entity '{}' is not of known type scene or script.", this->_id, this->_name, this->_entity_id);
+  }
+}
+
+void HomeAssistantScene::save() {
+  SPDLOG_ERROR("Save is not a possible action for Home Assistant scenes.");
+}
+
+void HomeAssistantScene::remove() {
+}
+
+uint16_t HomeAssistantScene::get_id() {
+  return this->_id;
+}
+
+MQTT_MANAGER_ENTITY_TYPE HomeAssistantScene::get_type() {
+  return MQTT_MANAGER_ENTITY_TYPE::SCENE;
+}
+
+MQTT_MANAGER_ENTITY_CONTROLLER HomeAssistantScene::get_controller() {
+  return MQTT_MANAGER_ENTITY_CONTROLLER::HOME_ASSISTANT;
+}
+
+void HomeAssistantScene::post_init() {
+}
+
+std::string HomeAssistantScene::get_name() {
+  return this->_name;
+}
+
+bool HomeAssistantScene::can_save() {
+  return false;
+}
+
+std::string_view HomeAssistantScene::get_icon() {
+  return EntityIcons::home_assistant_icon;
+}
+
+uint16_t HomeAssistantScene::get_icon_color() {
+  return GUI_Colors::icon_color_off;
+}
+
+uint16_t HomeAssistantScene::get_icon_active_color() {
+  return GUI_Colors::icon_color_off;
+}

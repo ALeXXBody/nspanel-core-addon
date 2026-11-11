@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/* Theme tokens. Dark is the default (kiosk panels live in dim rooms). */
+:root {
+  --bg: 0 0 0;
+  --surface: 0 0 0;
+  --text: 255 255 255;
+  --border: 255 255 255;
+  --accent: 59 130 246;
+}
+
+[data-theme="light"] {
+  --bg: 245 245 247;
+  --surface: 255 255 255;
+  --text: 17 17 17;
+  --border: 0 0 0;
+  --accent: 37 99 235;
+}
+
+@layer utilities {
+  .h-viewport {
+    height: 100vh; /* 1. TV & older browsers use this */
+    height: 100dvh; /* 2. Modern phones override with this */
+  }
+}
+
+@font-face {
+  font-family: "MDSH_Custom";
+  src: url("/fonts/MaterialDesignSmartHome_nspm_custom.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-nspm: "MDSH_Custom", sans-serif;
+  --color-bg: rgb(var(--bg));
+  --color-surface: rgb(var(--surface));
+  --color-text: rgb(var(--text));
+  --color-border: rgb(var(--border));
+  --color-accent: rgb(var(--accent));
+  --animate-overlayShow: overlay-fade 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-contentShow: modal-scale 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes overlay-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-scale {
+  from {
+    opacity: 0;
+    /* Scale down without touching positioning coordinates */
+    scale: 0.96;
+  }
+  to {
+    opacity: 1;
+    /* Scale up smoothly */
+    scale: 1;
+  }
+}
+
+.no-select {
+  -webkit-touch-callout: none; /* iOS Safari: Prevents the long-press callout menu */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Edge */
+}

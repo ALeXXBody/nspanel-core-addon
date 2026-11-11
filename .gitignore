@@ -1,0 +1,4 @@
+MQTTManager/nspm_mqttmanager
+MQTTManager/build/
+MQTTManager/*.so
+MQTTManager/compile_commands.json

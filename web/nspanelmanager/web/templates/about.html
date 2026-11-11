@@ -1,0 +1,35 @@
+{% load static %}
+<dialog id="about_modal" class="modal" hx-swap-oob="true">
+    <div class="modal-box menu menu-lg bg-base-200 rounded-box max-w-96">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+
+        <div class="flex items-center justify-center space-x-3 rtl:space-x-reverse">
+            <div class="bg-neutral/50 p-2 rounded-box">
+                <img src="{{ ingress_path }}{% static 'logo.svg' %}" alt="Logo" class="h-12">
+            </div>
+        </div>
+
+        <div class="mt-1 text-center">
+            <span class="text-center">Version: %version%</span>
+        </div>
+
+        <span class="mt-2 text-center">NSPanel Core is a software for easy management of multiple Sonoff NSPanels and intuitive use for all family members for the whole house.</span>
+        <span class="my-2 text-center font-bold">Thank you for your support and trust!</span>
+
+        <div id="about_links" class="join join-vertical w-full">
+            <a class="join-item btn btn-link" href="https://github.com/ALeXXBody/NSPanelCore" target="_blank">NSPanel Core GitHub</a>
+            <a class="join-item btn btn-link" href="https://github.com/ALeXXBody/NSPanelCore/tree/main/docs" target="_blank">Documentation</a>
+            <a class="join-item btn btn-link" href="https://github.com/NSPManager/NSPanelManager" target="_blank">Upstream project</a>
+            <div class="join-item flex items-center justify-center">
+                <a href="https://www.buymeacoffee.com/alexxbody" class="mt-4" target="_blank" rel="nofollow"><img src="{% static "bmc-button.png" %}" alt="Buy Me A Coffee" height="41" width="174" style="max-width: 100%;"></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backdrop that closes dialog/modal on click -->
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>

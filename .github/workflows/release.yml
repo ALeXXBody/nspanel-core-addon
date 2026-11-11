@@ -1,0 +1,49 @@
+name: "Release (UI + prebuilt bridge)"
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    name: Publish amd64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Determine image name
+        id: image
+        run: |
+          echo "name=ghcr.io/alexxbody/nspanel-core-amd64" >> $GITHUB_OUTPUT
+
+      - name: Update version strings
+        shell: bash
+        run: |
+          sed -i 's/%version%/${{ github.ref_name }}/g' web/nspanelmanager/web/templates/about.html
+          sed -i 's/%version%/${{ github.ref_name }}/g' web/nspanelmanager/web/templates/modals/initial_setup/welcome.html
+          sed -i 's/%version%/${{ github.ref_name }}/g' web/nspanelmanager/web/views.py
+
+      - name: Make bridge binary executable
+        run: chmod +x mqttmanager-build/nspm_mqttmanager
+
+      - name: Build and push amd64 image
+        uses: home-assistant/builder/actions/build-image@2026.09.0
+        with:
+          arch: amd64
+          image: ${{ steps.image.outputs.name }}
+          image-tags: |
+            ${{ github.ref_name }}
+            latest
+          version: ${{ github.ref_name }}
+          push: "true"
+          context: .
+          build-args: |
+            no_mqttmanager_build=yes
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          cosign: "false"

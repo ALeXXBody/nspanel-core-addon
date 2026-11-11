@@ -1,0 +1,15 @@
+MQTTManager/conan_cache/
+MQTTManager/.cache/
+MQTTManager/build/CMakeFiles
+MQTTManager/build/Debug
+MQTTManager/build/Release
+MQTTManager/build/CMakeFiles
+MQTTManager/build/CMakeCache.txt
+MQTTManager/build/Makefile
+MQTTManager/build/cmake_install.cmake
+MQTTManager/build/compile_commands.json
+web-ui/node_modules/
+web-ui/dist/
+MQTTManager/build/
+firmware/.pio/
+firmware/build/

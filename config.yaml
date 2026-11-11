@@ -1,0 +1,16 @@
+name: "NSPanel Core"
+description: "Sonoff NSPanel management for Home Assistant - HA-only fork with performance and stability fixes"
+version: v1.0.7
+image: ghcr.io/alexxbody/nspanel-core-{arch}
+slug: "nspanel-core"
+url: "https://github.com/ALeXXBody/NSPanelCore"
+webui: http://[HOST]:[PORT:8000]/
+panel_icon: mdi:fit-to-screen
+ports:
+  8000/tcp: 8000
+environment:
+  IS_HOME_ASSISTANT_ADDON: "true"
+init: false
+homeassistant_api: true
+arch:
+  - amd64  # aarch64 temporarily disabled until the Go bridge ships
